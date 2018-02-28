@@ -1,8 +1,0 @@
----
-docker_ee_common::repo_url: 'https://storebits.docker.com/ee/rhel/sub-e658359e-cc3d-403c-8334-ede9640e10e0/rhel/7/x86_64/stable/'
-docker_ee_common::repo_key: 'https://storebits.docker.com/ee/rhel/sub-e658359e-cc3d-403c-8334-ede9640e10e0/rhel/gpg'
-docker_ee_common::manager: "h0001016.associatesys.local"
-docker_ee_common::manager_token: "SWMTKN-1-4h9sebi7vbemp2u5qcs095ndjb7e9rpgnjbtw063tf8ho4bbqx-czc7qj1smb8jg3mqamjxvfba6"
-docker_ee_common::worker_token: "SWMTKN-1-4h9sebi7vbemp2u5qcs095ndjb7e9rpgnjbtw063tf8ho4bbqx-czc7qj1smb8jg3mqamjxvfba6"
-docker_ee_common::ucp_user: "admin"
-docker_ee_common::ucp_password: "thisisthepassword"

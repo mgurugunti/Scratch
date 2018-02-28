@@ -1,8 +1,0 @@
----
-version: 5
-hierarchy:
-  - name: docker
-    path: docker-ucp.yaml
-defaults:
-  data_hash: yaml_data
-  datadir: hieradata
