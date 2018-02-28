@@ -1,0 +1,93 @@
+ properties([
+     parameters([
+        string(defaultValue: "h0000", description: 'IP address or host name of the intial Swarm leader', name: 'LEADER'),   
+        string(defaultValue: "h0001,h0003,h00004", description: 'Comma Seperated list of IP address or host name for other Swarm Managers', name: 'MANAGERS'),   
+		string(defaultValue: "h0005,h0006,h00007", description: 'Comma Seperated list of IP addresses or host names for Swarm workers', name: 'WORKERS'),   
+		booleanParam(defaultValue: true, description: 'True UCP will be deployed, False Docker swarm with Mutual TLS', name: 'UCP'), 
+		string(defaultValue: "master", description: 'Working Branch for puppet code', name: 'BRANCH'),
+    ])
+])
+node{
+	stage('DEPLOY'){
+		env.DEPLOY = "ucp"
+		env.BRANCH = "${params.BRANCH}"
+	 
+		if (params.UCP){
+			env.DEPLOY = "ucp"
+		}else{
+			env.DEPLOY = "tls"
+		}
+	 
+		sh 'echo "DEPLOYING ${DEPLOY} from branch ${BRANCH}"'
+    }
+	stage('INIT'){
+		env.LEADER = "${params.LEADER}"
+	
+		if( "${LEADER}"?.trim() ) {
+			sh 'echo "${LEADER}"'
+		
+			build job: 'docker-swarm-init', parameters: [
+				string(value: "${LEADER}", name: 'IP'),
+				string(value: "${DEPLOY}", name: 'DEPLOYMENT'),
+				string(value: "${BRANCH}", name: 'BRANCH'),
+			]
+	  
+		}else{
+			println 'No leader input, exiting now'
+			sh 'exit 1'
+		}
+	}
+	stage('MANAGERS'){
+		env.MANAGERS = "${params.MANAGERS}"
+		env.LEADER = "${params.LEADER}"
+		
+		if( "${MANAGERS}"?.trim() ) {
+		  
+		  String[] managers=params.MANAGERS.split(",")
+		  
+		  length = managers.size()
+		  
+		  for(int i =0; i < length; i++){
+		    def index = managers[i]
+		     
+			 build job: 'docker-swarm-join', parameters: [
+					string(value: "${index}", name: 'IP'),
+					string(value: "${DEPLOY}", name: 'DEPLOYMENT'),
+					string(value: "${LEADER}", name: 'CLUSTER_LEADER'),
+					string(value: "manager", name: 'SWARM_ROLE'),
+					string(value: "${BRANCH}", name: 'BRANCH'),
+				]
+		  }
+		}else{
+		 
+		 println "No managers to add"
+		  
+		}
+	}
+	stage('WORKERS'){
+	    
+		env.LEADER = "${params.LEADER}"
+		env.WORKERS = "${params.WORKERS}"
+		
+		if( "${WORKERS}"?.trim() ) {
+		
+			String[] workers=params.WORKERS.split(",")
+		  
+			length = workers.size()
+		  
+		    for(int i =0; i < length; i++){
+				def index = workers[i]
+				 	 build job: 'docker-swarm-join', parameters: [
+					string(value: "${index}", name: 'IP'),
+					string(value: "${LEADER}", name: 'CLUSTER_LEADER'),
+					string(value: "${DEPLOY}", name: 'DEPLOYMENT'),
+					string(value: "worker", name: 'SWARM_ROLE'),
+					string(value: "${BRANCH}", name: 'BRANCH'),
+					]
+			}		   
+		}else{
+			println "No workers to add"
+			 
+		}
+	}
+}
